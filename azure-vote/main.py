@@ -9,20 +9,46 @@ from datetime import datetime
 
 # App Insights
 # TODO: Import required libraries for App Insights
+from opencensus.ext.azure.log_exporter import AzureLogHandler
+from opencensus.ext.azure.trace_exporter import AzureExporter
+from opencensus.ext.flask.flask_middleware import FlaskMiddleware
+from opencensus.trace.samplers import ProbabilitySampler
+from opencensus.trace.tracer import Tracer
 
 # Logging
-logger = # TODO: Setup logger
+logger = logging.getLogger('azure')
+handler = AzureLogHandler(
+    connection_string='InstrumentationKey=<9ee1c152-c8e8-4f27-bed8-235213e3dadc>')
+handler.setFormatter(logging.Formatter('%(traceId)s %(spanId)s %(message)s'))
+logger.addHandler(handler)
+
 
 # Metrics
-exporter = # TODO: Setup exporter
+exporter = AzureExporter(
+    connection_string='InstrumentationKey=<9ee1c152-c8e8-4f27-bed8-235213e3dadc>'),
 
 # Tracing
-tracer = # TODO: Setup tracer
+tracer = Tracer(
+    exporter=exporter,
+    sampler=ProbabilitySampler(1.0)
+)
 
 app = Flask(__name__)
 
 # Requests
-middleware = # TODO: Setup flask middleware
+middleware = FlaskMiddleware(
+    app,
+    exporter=AzureExporter(
+        connection_string="InstrumentationKey=<9ee1c152-c8e8-4f27-bed8-235213e3dadc>"),
+    sampler=ProbabilitySampler(rate=1.0),
+)
+
+# Testing App Insights
+logger.warning('Before the span')
+with tracer.span(name='test'):
+    logger.warning('In the span')
+logger.warning('After the span')
+
 
 # Load configurations from environment or config file
 app.config.from_pyfile('config_file.cfg')
@@ -50,8 +76,11 @@ if app.config['SHOWHOST'] == "true":
     title = socket.gethostname()
 
 # Init Redis
-if not r.get(button1): r.set(button1,0)
-if not r.get(button2): r.set(button2,0)
+if not r.get(button1):
+    r.set(button1, 0)
+if not r.get(button2):
+    r.set(button2, 0)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -72,8 +101,8 @@ def index():
         if request.form['vote'] == 'reset':
 
             # Empty table and return results
-            r.set(button1,0)
-            r.set(button2,0)
+            r.set(button1, 0)
+            r.set(button2, 0)
             vote1 = r.get(button1).decode('utf-8')
             properties = {'custom_dimensions': {'Cats Vote': vote1}}
             # TODO: use logger object to log cat vote
@@ -88,7 +117,7 @@ def index():
 
             # Insert vote result into DB
             vote = request.form['vote']
-            r.incr(vote,1)
+            r.incr(vote, 1)
 
             # Get current values
             vote1 = r.get(button1).decode('utf-8')
@@ -97,8 +126,9 @@ def index():
             # Return results
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
+
 if __name__ == "__main__":
     # TODO: Use the statement below when running locally
-    app.run() 
+    app.run()
     # TODO: Use the statement below before deployment to VMSS
     # app.run(host='0.0.0.0', threaded=True, debug=True) # remote
