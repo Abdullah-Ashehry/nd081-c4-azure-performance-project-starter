@@ -127,6 +127,7 @@ az network nsg rule create \
 --destination-port-ranges 80 \
 --direction Inbound \
 --priority 100 \
+--protocol "*" \
 --verbose
 
 echo "Port 80 added to NSG: $nsgName"
@@ -141,6 +142,7 @@ az network nsg rule create \
 --destination-port-ranges 22 \
 --direction Inbound \
 --priority 110 \
+--protocol "*" \
 --verbose
 
 echo "Port 22 added to NSG: $nsgName"
