@@ -43,10 +43,10 @@ middleware = FlaskMiddleware(
 )
 
 # Testing App Insights
-logger.warning('Before the span')
-with tracer.span(name='test'):
-    logger.warning('In the span')
-logger.warning('After the span')
+# logger.warning('Before the span')
+# with tracer.span(name='test'):
+#     logger.warning('In the span')
+# logger.warning('After the span')
 
 
 # Load configurations from environment or config file
