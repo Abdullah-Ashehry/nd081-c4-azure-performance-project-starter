@@ -18,14 +18,14 @@ from opencensus.trace.tracer import Tracer
 # Logging
 logger = logging.getLogger('azure')
 handler = AzureLogHandler(
-    connection_string='InstrumentationKey=<9ee1c152-c8e8-4f27-bed8-235213e3dadc>')
+    connection_string='InstrumentationKey=9ee1c152-c8e8-4f27-bed8-235213e3dadc')
 handler.setFormatter(logging.Formatter('%(traceId)s %(spanId)s %(message)s'))
 logger.addHandler(handler)
 
 
 # Metrics
 exporter = AzureExporter(
-    connection_string='InstrumentationKey=<9ee1c152-c8e8-4f27-bed8-235213e3dadc>'),
+    connection_string='InstrumentationKey=9ee1c152-c8e8-4f27-bed8-235213e3dadc'),
 
 # Tracing
 tracer = Tracer(
@@ -39,7 +39,7 @@ app = Flask(__name__)
 middleware = FlaskMiddleware(
     app,
     exporter=AzureExporter(
-        connection_string="InstrumentationKey=<9ee1c152-c8e8-4f27-bed8-235213e3dadc>"),
+        connection_string="InstrumentationKey=9ee1c152-c8e8-4f27-bed8-235213e3dadc"),
     sampler=ProbabilitySampler(rate=1.0),
 )
 
