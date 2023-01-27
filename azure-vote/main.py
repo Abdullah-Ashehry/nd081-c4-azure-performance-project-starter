@@ -28,7 +28,8 @@ exporter = AzureExporter(
 
 # Tracing
 tracer = Tracer(
-    exporter=exporter,
+    exporter=AzureExporter(
+        connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'),
     sampler=ProbabilitySampler(1.0)
 )
 
@@ -97,7 +98,6 @@ def index():
         with tracer.span(name="Dogs Vote") as span:
             print("Dogs Vote")
 
-        
         return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
     elif request.method == 'POST':
