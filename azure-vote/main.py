@@ -73,15 +73,15 @@ else:
 redis_server = os.environ['REDIS']
 
 try:
-      if "REDIS_PWD" in os.environ:
-         r = redis.StrictRedis(host=redis_server,
-                           port=6379,
-                           password=os.environ['REDIS_PWD'])
-      else:
-         r = redis.Redis(redis_server)
-      r.ping()
+    if "REDIS_PWD" in os.environ:
+        r = redis.StrictRedis(host=redis_server,
+                              port=6379,
+                              password=os.environ['REDIS_PWD'])
+    else:
+        r = redis.Redis(redis_server)
+    r.ping()
 except redis.ConnectionError:
-      exit('Failed to connect to Redis, terminating.')
+    exit('Failed to connect to Redis, terminating.')
 
 
 # Change title to host name to demo NLB
@@ -122,12 +122,12 @@ def index():
             # TODO: use logger object to log cat vote
             vote1 = r.get(button1).decode('utf-8')
             properties = {'custom_dimensions': {'Cats Vote': vote1}}
-            logger.info('Cats Vote: %s', vote1, extra=properties)
+            logger.info(properties)
 
             # TODO: use logger object to log dog vote
             vote2 = r.get(button2).decode('utf-8')
             properties = {'custom_dimensions': {'Dogs Vote': vote2}}
-            logger.info('Dogs Vote: %s', vote2, extra=properties)
+            logger.info(properties)
 
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
