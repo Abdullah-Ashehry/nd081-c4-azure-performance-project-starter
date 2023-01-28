@@ -15,24 +15,46 @@ from opencensus.ext.azure.trace_exporter import AzureExporter
 from opencensus.ext.flask.flask_middleware import FlaskMiddleware
 from opencensus.trace.samplers import ProbabilitySampler
 from opencensus.trace.tracer import Tracer
-
+from opencensus.stats import stats as stats_module
+from opencensus.ext.azure import metrics_exporter
 # Logging
-logger = logging.getLogger('azure')
-handler = AzureEventHandler(
+# logger = logging.getLogger('azure')
+# handler = AzureEventHandler(
+#     connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0')
+# logger.addHandler(handler)
+
+
+# # Metrics
+# exporter = AzureExporter(
+#     connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'),
+
+# # Tracing
+# tracer = Tracer(
+#     exporter=AzureExporter(
+#         connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'),
+#     sampler=ProbabilitySampler(1.0)
+# )
+
+logger = logging.getLogger(__name__)
+
+handler = AzureLogHandler(
     connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0')
 logger.addHandler(handler)
-
-
+logger.addHandler(AzureEventHandler(
+    connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'),)
+logger.setLevel(logging.INFO)
 # Metrics
-exporter = AzureExporter(
-    connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'),
-
+stats = stats_module.stats
+view_manager = stats.view_manager
+exporter = metrics_exporter.new_metrics_exporter(enable_standard_metrics=True,
+                                                 connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'
+                                                 )
+view_manager.register_exporter(exporter)
 # Tracing
 tracer = Tracer(
     exporter=AzureExporter(
         connection_string='InstrumentationKey=8c2baa4a-b152-4e5b-9c02-673ca52daad0'),
-    sampler=ProbabilitySampler(1.0)
-)
+    sampler=ProbabilitySampler(1.0),)
 
 app = Flask(__name__)
 
@@ -87,15 +109,16 @@ if not r.get(button2):
 def index():
 
     if request.method == 'GET':
-
         # Get current values
         # TODO: use tracer object to trace cat vote
         vote1 = r.get(button1).decode('utf-8')
-        tracer.span(name="Cats Vote")
+        with tracer.span(name="CatsVote") as span:
+            print("Cats Vote")
 
         # TODO: use tracer object to trace dog vote
         vote2 = r.get(button2).decode('utf-8')
-        tracer.span(name="Dogs Vote")
+        with tracer.span(name="DogsVote") as span:
+            print("Dogs Vote")
 
         return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
@@ -109,14 +132,12 @@ def index():
             # TODO: use logger object to log cat vote
             vote1 = r.get(button1).decode('utf-8')
             properties = {'custom_dimensions': {'Cats Vote': vote1}}
-            logger.info('Cats Vote', extra=properties)
-            logger.warning('Cats Vote')
+            logger.info('Cats', extra=properties)
 
             # TODO: use logger object to log dog vote
             vote2 = r.get(button2).decode('utf-8')
             properties = {'custom_dimensions': {'Dogs Vote': vote2}}
-            logger.info('Dogs Vote', extra=properties)
-            logger.warning('Dogs Vote')
+            logger.info('Dogs', extra=properties)
 
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
@@ -131,13 +152,13 @@ def index():
             properties = {'custom_dimensions': {'Cats Vote': vote1}}
             # TODO: use logger object to log cat vote
             logger.info('Cats Vote', extra=properties)
-            logger.warning('Cats Vote')
+            # logger.warning('Cats Vote')
 
             vote2 = r.get(button2).decode('utf-8')
             properties = {'custom_dimensions': {'Dogs Vote': vote2}}
             # TODO: use logger object to log dog vote
             logger.info('Dogs Vote', extra=properties)
-            logger.warning('Dogs Vote')
+            # logger.warning('Dogs Vote')
 
             # Return results
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
